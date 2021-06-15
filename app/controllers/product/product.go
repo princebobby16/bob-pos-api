@@ -103,6 +103,67 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 
+	transactionId := uuid.NewV4()
+
+	headers, err := pkg.ValidateHeaders(r)
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
+		return
+	}
+
+	//Get the relevant headers
+	traceId := headers["trace-id"]
+
+	// Logging the headers
+	logs.Logger.Infof("Headers => TraceId: %s", traceId)
+
+	productId := r.URL.Query().Get("product_id")
+	logs.Logger.Info(productId)
+
+	query := `select * from bobpos.products limit 2000`
+
+	rows, err := db.Connection.Query(query)
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
+		return
+	}
+
+	var products []pkg.Product
+	for rows.Next() {
+		var product pkg.Product
+		err = rows.Scan(
+			&product.Id,
+			&product.Name,
+			&product.Category,
+			&product.Weight,
+			&product.CostPrice,
+			&product.Tax,
+			&product.ProfitMargin,
+			&product.Image,
+			&product.NumberInStock,
+			&product.CreatedAt,
+			&product.UpdatedAt,
+		)
+		if err != nil {
+			pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
+			return
+		}
+
+		products = append(products, product)
+		product.Image = []byte{}
+		logs.Logger.Info(product)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(pkg.StandardGetAllProductsResponse{
+		Data: products,
+		Meta: pkg.Meta{
+			Timestamp:     time.Now(),
+			TransactionId: transactionId.String(),
+			TraceId:       traceId,
+			Status:        "SUCCESS",
+		},
+	})
 }
 
 func getImageIfAvailable(err error, product *pkg.Product) bool {

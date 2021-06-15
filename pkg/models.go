@@ -16,6 +16,13 @@ type (
 		ProfitMargin  float64   `json:"profit_margin"`
 		Image         []byte    `json:"image"`
 		NumberInStock int       `json:"number_in_stock"`
+		CreatedAt     time.Time `json:"created_at"`
+		UpdatedAt     time.Time `json:"updated_at"`
+	}
+
+	StandardGetAllProductsResponse struct {
+		Data []Product `json:"data"`
+		Meta Meta      `json:"meta"`
 	}
 
 	StandardResponse struct {
