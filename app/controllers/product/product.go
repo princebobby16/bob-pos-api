@@ -60,6 +60,48 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	transactionId := uuid.NewV4()
+
+	headers, err := pkg.ValidateHeaders(r)
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
+		return
+	}
+
+	//Get the relevant headers
+	traceId := headers["trace-id"]
+
+	// Logging the headers
+	logs.Logger.Infof("Headers => TraceId: %s", traceId)
+
+	productId := r.URL.Query().Get("product_id")
+	logs.Logger.Info(productId)
+
+	query := `delete from bobpos.products where id=$1`
+
+	_, err = db.Connection.Exec(query, &productId)
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(pkg.StandardResponse{
+		Data: pkg.Data{
+			Id:        productId,
+			UiMessage: "Product Deleted!",
+		},
+		Meta: pkg.Meta{
+			Timestamp:     time.Now(),
+			TransactionId: transactionId.String(),
+			TraceId:       traceId,
+			Status:        "SUCCESS",
+		},
+	})
+
+}
+
+func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 
 }
 

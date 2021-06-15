@@ -40,6 +40,20 @@ func InitRoutes() *mux.Router {
 		},
 
 		Route{
+			Name:    "Delete Product",
+			Path:    "/products",
+			Method:  http.MethodDelete,
+			Handler: product.DeleteProduct,
+		},
+
+		Route{
+			Name:    "Get All Products",
+			Path:    "/products",
+			Method:  http.MethodGet,
+			Handler: product.GetAllProducts,
+		},
+
+		Route{
 			Name:    "Upload Product Image",
 			Path:    "/up/products",
 			Method:  http.MethodPost,
