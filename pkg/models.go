@@ -11,7 +11,9 @@ type (
 		Name          string    `json:"name"`
 		Category      string    `json:"category"`
 		Weight        string    `json:"weight"`
-		Price         int       `json:"price"`
+		CostPrice     float64   `json:"cost_price"`
+		Tax           float64   `json:"tax"`
+		ProfitMargin  float64   `json:"profit_margin"`
 		Image         []byte    `json:"image"`
 		NumberInStock int       `json:"number_in_stock"`
 	}

@@ -7,6 +7,7 @@ require (
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 // indirect
 	github.com/cristalhq/jwt v1.2.0 // indirect
+	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect

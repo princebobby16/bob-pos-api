@@ -3,6 +3,8 @@ package router
 import (
 	"github.com/gorilla/mux"
 	"gitlab.com/pbobby001/bobpos_api/app/controllers"
+	"gitlab.com/pbobby001/bobpos_api/app/controllers/mediaupload"
+	"gitlab.com/pbobby001/bobpos_api/app/controllers/product"
 	"net/http"
 )
 
@@ -28,6 +30,26 @@ func InitRoutes() *mux.Router {
 			Path:    "/",
 			Method:  http.MethodGet,
 			Handler: controllers.HealthCheckHandler,
+		},
+
+		Route{
+			Name:    "Create Product",
+			Path:    "/products",
+			Method:  http.MethodPost,
+			Handler: product.CreateProduct,
+		},
+
+		Route{
+			Name:    "Upload Product Image",
+			Path:    "/up/products",
+			Method:  http.MethodPost,
+			Handler: mediaupload.HandleMediaUpload,
+		},
+		Route{
+			Name:    "Delete Uploaded media file",
+			Path:    "/can/products",
+			Method:  http.MethodPost,
+			Handler: mediaupload.HandleCancelMediaUpload,
 		},
 	}
 

@@ -13,7 +13,7 @@ import (
 func ValidateHeaders(r *http.Request) (map[string]string, error) {
 	//Group the headers
 	receivedHeaders := make(map[string]string)
-	requiredHeaders := []string{"trace-id", "tenant-namespace"}
+	requiredHeaders := []string{"trace-id"}
 
 	for _, header := range requiredHeaders {
 		value := r.Header.Get(header)
@@ -45,8 +45,7 @@ func SendErrorResponse(w http.ResponseWriter, tId uuid.UUID, traceId string, err
 	_ = logs.Logger.Error(err)
 	_ = json.NewEncoder(w).Encode(StandardResponse{
 		Data: Data{
-			Id:        "",
-			UiMessage: "Something went wrong! Contact Admin!",
+			UiMessage: err.Error(),
 		},
 		Meta: Meta{
 			Timestamp:     time.Now(),

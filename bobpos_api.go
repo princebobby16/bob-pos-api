@@ -9,7 +9,6 @@ import (
 	"gitlab.com/pbobby001/bobpos_api/app/router"
 	"gitlab.com/pbobby001/bobpos_api/db"
 	"gitlab.com/pbobby001/bobpos_api/pkg/logs"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -65,27 +64,11 @@ func main() {
 
 	r.Use(middlewares.JSONMiddleware)
 
-	go func() {
-		for {
-			ticker := time.NewTicker(30 * time.Second)
-			for t := range ticker.C {
-				resp, err := http.Get(os.Getenv("PING_URL"))
-				if err != nil {
-					_ = logs.Logger.Error("unable to ping")
-					continue
-				}
-				body, _ := ioutil.ReadAll(resp.Body)
-				logs.Logger.Info(string(body))
-				logs.Logger.Info("Pinging " + os.Getenv("PING_URL") + t.String())
-			}
-		}
-	}()
-
 	defer db.Disconnect()
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		// TODO: Fetch port from store
-		logs.Logger.Info("Server running on port", port)
+		logs.Logger.Info("Server running on port: ", port)
 		if err := server.ListenAndServe(); err != nil {
 			_ = logs.Logger.Warn(err)
 		}

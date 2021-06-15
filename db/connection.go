@@ -12,7 +12,6 @@ var Connection *sql.DB
 
 func Connect() {
 
-	logs.Logger.Info(os.Getenv("DATABASE_URL"))
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		panic(err)
