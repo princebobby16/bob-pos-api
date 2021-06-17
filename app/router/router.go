@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gorilla/mux"
 	"gitlab.com/pbobby001/bobpos_api/app/controllers"
+	"gitlab.com/pbobby001/bobpos_api/app/controllers/category"
 	"gitlab.com/pbobby001/bobpos_api/app/controllers/mediaupload"
 	"gitlab.com/pbobby001/bobpos_api/app/controllers/product"
 	"net/http"
@@ -32,6 +33,7 @@ func InitRoutes() *mux.Router {
 			Handler: controllers.HealthCheckHandler,
 		},
 
+		// products start
 		Route{
 			Name:    "Create Product",
 			Path:    "/products",
@@ -47,8 +49,15 @@ func InitRoutes() *mux.Router {
 		},
 
 		Route{
+			Name:    "Get One Product By Id",
+			Path:    "/one/products",
+			Method:  http.MethodGet,
+			Handler: product.GetOneProductById,
+		},
+
+		Route{
 			Name:    "Get All Products",
-			Path:    "/products",
+			Path:    "/all/products",
 			Method:  http.MethodGet,
 			Handler: product.GetAllProducts,
 		},
@@ -64,6 +73,14 @@ func InitRoutes() *mux.Router {
 			Path:    "/can/products",
 			Method:  http.MethodPost,
 			Handler: mediaupload.HandleCancelMediaUpload,
+		},
+		// products end
+
+		Route{
+			Name:    "Get All Categories",
+			Path:    "/categories",
+			Method:  http.MethodGet,
+			Handler: category.GetAllCategories,
 		},
 	}
 
