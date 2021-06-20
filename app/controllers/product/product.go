@@ -2,10 +2,13 @@ package product
 
 import (
 	"encoding/json"
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/ean"
 	"github.com/twinj/uuid"
 	"gitlab.com/pbobby001/bobpos_api/db"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
 	"gitlab.com/pbobby001/bobpos_api/pkg/logs"
+	"image/png"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -22,6 +25,21 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	if getImageIfAvailable(err, product) {
 		return
 	}
+
+	// generate product sku
+	sku, err := pkg.GenerateSku()
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
+		return
+	}
+	logs.Logger.Info(sku)
+	// create barcode
+	file, done2 := generateBarcodeForProduct(w, err, transactionId, traceId)
+	if done2 {
+		return
+	}
+	defer file.Close()
+	logs.Logger.Info(file.Name())
 
 	query := `insert into bobpos.products(id, name, category, weight, cost_price, tax, profit_margin, image, number_in_stock)
 				values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
@@ -57,6 +75,32 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 
+}
+
+func generateBarcodeForProduct(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string) (*os.File, bool) {
+	barCode, err := ean.Encode("")
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
+		return nil, true
+	}
+
+	content := barCode.Content()
+	logs.Logger.Info(content)
+
+	code, err := barcode.Scale(barCode, 200, 200)
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
+		return nil, true
+	}
+	file, err := os.Create("qrcode.png")
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
+		return nil, true
+	}
+
+	//encode the barcode as png
+	_ = png.Encode(file, code)
+	return file, false
 }
 
 func DeleteProduct(w http.ResponseWriter, r *http.Request) {

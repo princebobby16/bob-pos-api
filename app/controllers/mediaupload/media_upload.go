@@ -138,7 +138,7 @@ func parseMultipartToFile(fileChannel <-chan multipart.File, filename string) {
 		}
 
 		imb := imaging.AdjustBrightness(img, -5)
-		src := imaging.Resize(imb, 500, 0, imaging.Lanczos)
+		src := imaging.Resize(imb, 0, 200, imaging.Lanczos)
 		err = imaging.Save(src, tempFile.Name())
 		if err != nil {
 			_ = logs.Logger.Error(err)
