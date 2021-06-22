@@ -25,7 +25,7 @@ func HandleMediaUpload(w http.ResponseWriter, r *http.Request) {
 
 	transactionId := uuid.NewV4()
 
-	headers, err := pkg.ValidateHeaders(r)
+	headers, err := pkg.ValidateHeadersAndReturnTheirValues(r)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
 		return
@@ -153,7 +153,7 @@ func parseMultipartToFile(fileChannel <-chan multipart.File, filename string) {
 func HandleCancelMediaUpload(w http.ResponseWriter, r *http.Request) {
 	transactionId := uuid.NewV4()
 
-	headers, err := pkg.ValidateHeaders(r)
+	headers, err := pkg.ValidateHeadersAndReturnTheirValues(r)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
 		return
@@ -220,7 +220,7 @@ func HandleCancelMediaUpload(w http.ResponseWriter, r *http.Request) {
 func DeleteUploadedFiles(w http.ResponseWriter, r *http.Request) {
 	transactionId := uuid.NewV4()
 
-	headers, err := pkg.ValidateHeaders(r)
+	headers, err := pkg.ValidateHeadersAndReturnTheirValues(r)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
 		return

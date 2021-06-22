@@ -12,10 +12,10 @@ create table if not exists bobpos.product_category (
 
 insert into
     bobpos.product_category(category_id, category_name)
-    VALUES (uuid_generate_v4(), 'CHICKEN'),
-           (uuid_generate_v4(), 'COW'),
-           (uuid_generate_v4(), 'TURKEY'),
-           (uuid_generate_v4(), 'OTHER') on conflict do nothing;
+    VALUES (uuid_generate_v4(), 'Chicken'),
+           (uuid_generate_v4(), 'Cow'),
+           (uuid_generate_v4(), 'Turkey'),
+           (uuid_generate_v4(), 'Other') on conflict do nothing;
 alter table bobpos.products add foreign key (category) references bobpos.product_category;
 
 -- SQL in section 'Up' is executed when this migration is applied

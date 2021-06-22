@@ -11,7 +11,7 @@ import (
 )
 
 func GetAllCategories(w http.ResponseWriter, r *http.Request) {
-	transactionId, err, traceId, done := generateTansactionIdAndExtractTraceId(w, r)
+	transactionId, err, traceId, done := generateTransactionIdAndExtractTraceId(w, r)
 	if done {
 		return
 	}
@@ -61,10 +61,10 @@ func getAllCategoriesFromTheDatabase(w http.ResponseWriter, err error, transacti
 	return categories, false
 }
 
-func generateTansactionIdAndExtractTraceId(w http.ResponseWriter, r *http.Request) (uuid.UUID, error, string, bool) {
+func generateTransactionIdAndExtractTraceId(w http.ResponseWriter, r *http.Request) (uuid.UUID, error, string, bool) {
 	transactionId := uuid.NewV4()
 
-	headers, err := pkg.ValidateHeaders(r)
+	headers, err := pkg.ValidateHeadersAndReturnTheirValues(r)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
 		return uuid.UUID{}, nil, "", true

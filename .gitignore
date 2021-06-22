@@ -3,3 +3,4 @@
 bobpos_api
 pkg/logs/*.log
 pkg/images
+*.pdf

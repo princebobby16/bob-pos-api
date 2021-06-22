@@ -1,7 +1,9 @@
 package product
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/ean"
 	"github.com/twinj/uuid"
@@ -21,28 +23,42 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	if done {
 		return
 	}
-
-	if getImageIfAvailable(err, product) {
-		return
-	}
-
-	// generate product sku
-	sku, err := pkg.GenerateSku()
-	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
-		return
-	}
-	logs.Logger.Info(sku)
 	// create barcode
-	file, done2 := generateBarcodeForProduct(w, err, transactionId, traceId)
+	imageData, code, done2 := generateBarcodeForProduct(w, err, transactionId, traceId)
 	if done2 {
 		return
 	}
-	defer file.Close()
-	logs.Logger.Info(file.Name())
 
-	query := `insert into bobpos.products(id, name, category, weight, cost_price, tax, profit_margin, image, number_in_stock)
-				values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	if getImageIfAvailable(w, transactionId, traceId, err, product) {
+		return
+	}
+	productId, done3 := insertProductIntoDatabase(w, err, code, product, transactionId, traceId)
+	if done3 {
+		return
+	}
+
+	sendProductCreatedSuccessResponse(w, imageData, productId, transactionId, traceId)
+}
+
+func sendProductCreatedSuccessResponse(w http.ResponseWriter, imageData []byte, productId uuid.UUID, transactionId uuid.UUID, traceId string) {
+	_ = json.NewEncoder(w).Encode(pkg.StandardCreatedProductResponse{
+		Data: pkg.CreatedProductData{
+			Id:             productId.String(),
+			UiMessage:      "Product Created!",
+			ProductBarcode: imageData,
+		},
+		Meta: pkg.Meta{
+			Timestamp:     time.Now(),
+			TransactionId: transactionId.String(),
+			TraceId:       traceId,
+			Status:        "SUCCESS",
+		},
+	})
+}
+
+func insertProductIntoDatabase(w http.ResponseWriter, err error, code string, product *pkg.Product, transactionId uuid.UUID, traceId string) (uuid.UUID, bool) {
+	query := `insert into bobpos.products(id, name, category, weight, cost_price, tax, profit_margin, image, number_in_stock, barcode)
+				values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	productId := uuid.NewV4()
 	_, err = db.Connection.Exec(
@@ -56,212 +72,114 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		&product.ProfitMargin,
 		&product.Image,
 		&product.NumberInStock,
+		&code,
 	)
 	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
-		return
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return uuid.UUID{}, true
 	}
-
-	_ = json.NewEncoder(w).Encode(pkg.StandardResponse{
-		Data: pkg.Data{
-			Id:        productId.String(),
-			UiMessage: "Product Created!",
-		},
-		Meta: pkg.Meta{
-			Timestamp:     time.Now(),
-			TransactionId: transactionId.String(),
-			TraceId:       traceId,
-			Status:        "SUCCESS",
-		},
-	})
-
+	return productId, false
 }
 
-func generateBarcodeForProduct(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string) (*os.File, bool) {
-	barCode, err := ean.Encode("")
+func generateRandomNumbers(num int, otpChars string) (string, error) {
+	buffer := make([]byte, num)
+	_, err := rand.Read(buffer)
 	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
-		return nil, true
+		return "", err
+	}
+
+	otpCharsLength := len(otpChars)
+	for i := 0; i < num; i++ {
+		buffer[i] = otpChars[int(buffer[i])%otpCharsLength]
+	}
+
+	return string(buffer), nil
+}
+
+func generateBarcodeForProduct(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string) ([]byte, string, bool) {
+	barcodeNumbers, bytes, s, b, done := getBarcodeNumber(w, err, transactionId, traceId)
+	if done {
+		return bytes, s, b
+	}
+
+	content, file, i, s2, b2, done2 := createBarcodeImage(w, err, transactionId, traceId, barcodeNumbers)
+	if done2 {
+		return i, s2, b2
+	}
+	imageBytes, i2, s3, b3, done3 := openAndReadBarcodeContent(w, err, transactionId, traceId, file)
+	if done3 {
+		return i2, s3, b3
+	}
+	return imageBytes, content, false
+}
+
+func openAndReadBarcodeContent(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string, file *os.File) ([]byte, []byte, string, bool, bool) {
+	f, err := os.Open(file.Name())
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return nil, nil, "", true, true
+	}
+
+	imageBytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return nil, nil, "", true, true
+	}
+	err = file.Close()
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return nil, nil, "", true, true
+	}
+	return imageBytes, nil, "", false, false
+}
+
+func createBarcodeImage(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string, barcodeNumbers string) (string, *os.File, []byte, string, bool, bool) {
+	barCode, err := ean.Encode(barcodeNumbers)
+	if err != nil {
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return "", nil, nil, "", true, true
 	}
 
 	content := barCode.Content()
 	logs.Logger.Info(content)
 
-	code, err := barcode.Scale(barCode, 200, 200)
+	code, err := barcode.Scale(barCode, 200, 100)
 	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
-		return nil, true
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return "", nil, nil, "", true, true
 	}
+
 	file, err := os.Create("qrcode.png")
 	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
-		return nil, true
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return "", nil, nil, "", true, true
 	}
 
 	//encode the barcode as png
 	_ = png.Encode(file, code)
-	return file, false
+	return content, file, nil, "", false, false
 }
 
-func DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	transactionId := uuid.NewV4()
-
-	headers, err := pkg.ValidateHeaders(r)
+func getBarcodeNumber(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string) (string, []byte, string, bool, bool) {
+	last2Numbers, err := generateRandomNumbers(2, "1234567890")
 	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
-		return
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return "", nil, "", true, true
 	}
-
-	//Get the relevant headers
-	traceId := headers["trace-id"]
-
-	// Logging the headers
-	logs.Logger.Infof("Headers => TraceId: %s", traceId)
-
-	productId := r.URL.Query().Get("product_id")
-	logs.Logger.Info(productId)
-
-	query := `delete from bobpos.products where id=$1`
-
-	_, err = db.Connection.Exec(query, &productId)
+	middleNumbers, err := generateRandomNumbers(5, "567890")
 	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
-		return
+		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
+		return "", nil, "", true, true
 	}
-
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(pkg.StandardResponse{
-		Data: pkg.Data{
-			Id:        productId,
-			UiMessage: "Product Deleted!",
-		},
-		Meta: pkg.Meta{
-			Timestamp:     time.Now(),
-			TransactionId: transactionId.String(),
-			TraceId:       traceId,
-			Status:        "SUCCESS",
-		},
-	})
-
+	barcodeNumbers := "00233" + middleNumbers + last2Numbers
+	return barcodeNumbers, nil, "", false, false
 }
 
-func GetAllProducts(w http.ResponseWriter, r *http.Request) {
-
-	logs.Logger.Info("in get")
-	transactionId := uuid.NewV4()
-
-	headers, err := pkg.ValidateHeaders(r)
-	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
-		return
-	}
-
-	//Get the relevant headers
-	traceId := headers["trace-id"]
-
-	// Logging the headers
-	logs.Logger.Infof("Headers => TraceId: %s", traceId)
-
-	query := `select * from bobpos.products limit 2000`
-
-	rows, err := db.Connection.Query(query)
-	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
-		return
-	}
-
-	var products []pkg.Product
-	for rows.Next() {
-		var product pkg.Product
-		err = rows.Scan(
-			&product.Id,
-			&product.Name,
-			&product.Category,
-			&product.Weight,
-			&product.CostPrice,
-			&product.Tax,
-			&product.ProfitMargin,
-			&product.Image,
-			&product.NumberInStock,
-			&product.CreatedAt,
-			&product.UpdatedAt,
-		)
-		if err != nil {
-			pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
-			return
-		}
-
-		products = append(products, product)
-		product.Image = []byte{}
-		logs.Logger.Info(product)
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(pkg.StandardGetAllProductsResponse{
-		Data: products,
-		Meta: pkg.Meta{
-			Timestamp:     time.Now(),
-			TransactionId: transactionId.String(),
-			TraceId:       traceId,
-			Status:        "SUCCESS",
-		},
-	})
-}
-
-func GetOneProductById(w http.ResponseWriter, r *http.Request) {
-	transactionId := uuid.NewV4()
-
-	headers, err := pkg.ValidateHeaders(r)
-	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
-		return
-	}
-
-	//Get the relevant headers
-	traceId := headers["trace-id"]
-
-	// Logging the headers
-	logs.Logger.Infof("Headers => TraceId: %s", traceId)
-
-	productId := r.URL.Query().Get("product_id")
-	logs.Logger.Info(productId)
-
-	query := `select * from bobpos.products where id=$1`
-	var product pkg.Product
-	err = db.Connection.QueryRow(query, &productId).Scan(
-		&product.Id,
-		&product.Name,
-		&product.Category,
-		&product.Weight,
-		&product.CostPrice,
-		&product.Tax,
-		&product.ProfitMargin,
-		&product.Image,
-		&product.NumberInStock,
-		&product.CreatedAt,
-		&product.UpdatedAt,
-	)
-	if err != nil {
-		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(pkg.GetOneProductResponse{
-		Product: product,
-		Meta: pkg.Meta{
-			Timestamp:     time.Now(),
-			TransactionId: transactionId.String(),
-			TraceId:       traceId,
-			Status:        "SUCCESS",
-		},
-	})
-}
-
-func getImageIfAvailable(err error, product *pkg.Product) bool {
+func getImageIfAvailable(w http.ResponseWriter, tid uuid.UUID, traceId string, err error, product *pkg.Product) bool {
 	wd, err := os.Getwd()
 	if err != nil {
 		_ = logs.Logger.Error(err)
+		pkg.SendErrorResponse(w, tid, traceId, err, http.StatusBadRequest)
 		return true
 	}
 
@@ -272,6 +190,8 @@ func getImageIfAvailable(err error, product *pkg.Product) bool {
 	if err != nil {
 		if os.IsNotExist(err) {
 			_ = logs.Logger.Warn(err)
+			pkg.SendErrorResponse(w, tid, traceId, errors.New("no image uploaded"), http.StatusBadRequest)
+			return true
 		} else {
 			_ = logs.Logger.Error(err)
 			return true
@@ -289,17 +209,20 @@ func getImageIfAvailable(err error, product *pkg.Product) bool {
 			openImage, err := os.Open(fileLocation)
 			if err != nil {
 				_ = logs.Logger.Error(err)
+				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
 				return true
 			}
 
 			imageBytes, err = ioutil.ReadAll(openImage)
 			if err != nil {
 				_ = logs.Logger.Error(err)
+				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
 				return true
 			}
 			err = openImage.Close()
 			if err != nil {
 				_ = logs.Logger.Error(err)
+				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
 				return true
 			}
 			product.Image = imageBytes
@@ -307,6 +230,13 @@ func getImageIfAvailable(err error, product *pkg.Product) bool {
 			err = os.RemoveAll(wd + "/pkg/images")
 			if err != nil {
 				_ = logs.Logger.Error(err)
+				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
+				return true
+			}
+			err = os.Remove(wd + "/qrcode.png")
+			if err != nil {
+				_ = logs.Logger.Error(err)
+				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
 				return true
 			}
 		}
@@ -317,7 +247,7 @@ func getImageIfAvailable(err error, product *pkg.Product) bool {
 func handleCreatProductRequest(w http.ResponseWriter, r *http.Request) (uuid.UUID, error, string, *pkg.Product, bool) {
 	transactionId := uuid.NewV4()
 
-	headers, err := pkg.ValidateHeaders(r)
+	headers, err := pkg.ValidateHeadersAndReturnTheirValues(r)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
 		return uuid.UUID{}, nil, "", nil, true

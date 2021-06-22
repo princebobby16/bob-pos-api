@@ -47,6 +47,17 @@ type (
 		Meta Meta `json:"meta"`
 	}
 
+	StandardCreatedProductResponse struct {
+		Data CreatedProductData `json:"data"`
+		Meta Meta               `json:"meta"`
+	}
+
+	CreatedProductData struct {
+		Id             string `json:"id"`
+		UiMessage      string `json:"ui_message"`
+		ProductBarcode []byte `json:"product_barcode"`
+	}
+
 	Data struct {
 		Id        string `json:"id"`
 		UiMessage string `json:"ui_message"`

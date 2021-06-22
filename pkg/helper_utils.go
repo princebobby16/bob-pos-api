@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// ValidateHeaders /* Validate header is a function used to make sure that the required  headers are sent to the API
-func ValidateHeaders(r *http.Request) (map[string]string, error) {
+// ValidateHeadersAndReturnTheirValues Validate header is a function used to make sure that the required  headers are sent to the API
+func ValidateHeadersAndReturnTheirValues(r *http.Request) (map[string]string, error) {
 	//Group the headers
 	receivedHeaders := make(map[string]string)
 	requiredHeaders := []string{"trace-id"}
