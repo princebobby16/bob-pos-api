@@ -49,6 +49,7 @@ func getProductFromDatabase(w http.ResponseWriter, err error, productId string, 
 		&product.NumberInStock,
 		&product.CreatedAt,
 		&product.UpdatedAt,
+		&product.Barcode,
 	)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)

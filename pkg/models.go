@@ -16,6 +16,7 @@ type (
 		ProfitMargin  float64   `json:"profit_margin"`
 		Image         []byte    `json:"image"`
 		NumberInStock int       `json:"number_in_stock"`
+		Barcode       string    `json:"barcode"`
 		CreatedAt     time.Time `json:"created_at"`
 		UpdatedAt     time.Time `json:"updated_at"`
 	}
