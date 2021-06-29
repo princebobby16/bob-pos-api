@@ -6,6 +6,7 @@ import (
 	"gitlab.com/pbobby001/bobpos_api/app/controllers/category"
 	"gitlab.com/pbobby001/bobpos_api/app/controllers/mediaupload"
 	"gitlab.com/pbobby001/bobpos_api/app/controllers/product"
+	"gitlab.com/pbobby001/bobpos_api/app/controllers/product/create"
 	"net/http"
 )
 
@@ -38,7 +39,7 @@ func InitRoutes() *mux.Router {
 			Name:    "Create Product",
 			Path:    "/products",
 			Method:  http.MethodPost,
-			Handler: product.CreateProduct,
+			Handler: create.CreateProduct,
 		},
 
 		Route{

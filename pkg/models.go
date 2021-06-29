@@ -7,18 +7,26 @@ import (
 
 type (
 	Product struct {
-		Id            uuid.UUID `json:"id"`
-		Name          string    `json:"name"`
-		Category      string    `json:"category"`
-		Weight        string    `json:"weight"`
-		CostPrice     float64   `json:"cost_price"`
-		Tax           float64   `json:"tax"`
-		ProfitMargin  float64   `json:"profit_margin"`
-		Image         []byte    `json:"image"`
-		NumberInStock int       `json:"number_in_stock"`
-		Barcode       string    `json:"barcode"`
-		CreatedAt     time.Time `json:"created_at"`
-		UpdatedAt     time.Time `json:"updated_at"`
+		Id            uuid.UUID       `json:"id"`
+		Name          string          `json:"name"`
+		Category      ProductCategory `json:"category"`
+		Weight        string          `json:"weight"`
+		CostPrice     float64         `json:"cost_price"`
+		Tax           TaxDetails      `json:"tax"`
+		ProfitMargin  float64         `json:"profit_margin"`
+		Image         []byte          `json:"image"`
+		NumberInStock int             `json:"number_in_stock"`
+		Barcode       string          `json:"barcode"`
+		CreatedAt     time.Time       `json:"created_at"`
+		UpdatedAt     time.Time       `json:"updated_at"`
+	}
+
+	TaxDetails struct {
+		Id        uuid.UUID `json:"id"`
+		Name      string    `json:"name"`
+		TaxRate   string    `json:"tax_rate"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
 	}
 
 	ProductCategory struct {

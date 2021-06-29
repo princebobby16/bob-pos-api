@@ -1,7 +1,6 @@
-package product
+package create
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"github.com/boombuler/barcode"
@@ -12,40 +11,18 @@ import (
 	"gitlab.com/pbobby001/bobpos_api/pkg/logs"
 	"image/png"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 )
 
-func CreateProduct(w http.ResponseWriter, r *http.Request) {
-	transactionId, err, traceId, product, done := handleCreatProductRequest(w, r)
-	if done {
-		return
-	}
-	// create barcode
-	imageData, code, done2 := generateBarcodeForProduct(w, err, transactionId, traceId)
-	if done2 {
-		return
-	}
-
-	if getImageIfAvailable(w, transactionId, traceId, err, product) {
-		return
-	}
-	productId, done3 := insertProductIntoDatabase(w, err, code, product, transactionId, traceId)
-	if done3 {
-		return
-	}
-
-	sendProductCreatedSuccessResponse(w, imageData, productId, transactionId, traceId)
-}
-
-func sendProductCreatedSuccessResponse(w http.ResponseWriter, imageData []byte, productId uuid.UUID, transactionId uuid.UUID, traceId string) {
+func sendProductCreatedSuccessResponse(w http.ResponseWriter, productId uuid.UUID, transactionId uuid.UUID, traceId string) {
 	_ = json.NewEncoder(w).Encode(pkg.StandardCreatedProductResponse{
 		Data: pkg.CreatedProductData{
-			Id:             productId.String(),
-			UiMessage:      "Product Created!",
-			ProductBarcode: imageData,
+			Id:        productId.String(),
+			UiMessage: "Product Created!",
 		},
 		Meta: pkg.Meta{
 			Timestamp:     time.Now(),
@@ -56,7 +33,7 @@ func sendProductCreatedSuccessResponse(w http.ResponseWriter, imageData []byte, 
 	})
 }
 
-func insertProductIntoDatabase(w http.ResponseWriter, err error, code string, product *pkg.Product, transactionId uuid.UUID, traceId string) (uuid.UUID, bool) {
+func insertProductIntoDatabase(w http.ResponseWriter, err error, product *pkg.Product, transactionId uuid.UUID, traceId string) (uuid.UUID, bool) {
 	query := `insert into bobpos.products(id, name, category, weight, cost_price, tax, profit_margin, image, number_in_stock, barcode)
 				values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
@@ -72,7 +49,7 @@ func insertProductIntoDatabase(w http.ResponseWriter, err error, code string, pr
 		&product.ProfitMargin,
 		&product.Image,
 		&product.NumberInStock,
-		&code,
+		&product.Barcode,
 	)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusInternalServerError)
@@ -245,6 +222,7 @@ func getImageIfAvailable(w http.ResponseWriter, tid uuid.UUID, traceId string, e
 }
 
 func handleCreatProductRequest(w http.ResponseWriter, r *http.Request) (uuid.UUID, error, string, *pkg.Product, bool) {
+
 	transactionId := uuid.NewV4()
 
 	headers, err := pkg.ValidateHeadersAndReturnTheirValues(r)
