@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -63,10 +64,12 @@ func HandleMediaUpload(w http.ResponseWriter, r *http.Request) {
 	logs.Logger.Info("File Size: ", handler.Size)
 	logs.Logger.Info("MIME Header: ", handler.Header)
 
-	//extension := strings.Split(handler.Filename, ".")[1]
-
-	//logs.Logger.Info("Image extension ", extension)
-	//imageExt = extension
+	if strings.Split(handler.Filename, ".")[1] == "webp" {
+		logs.Logger.Info("invalid image format")
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("invalid\timage\tformat"))
+		return
+	}
 
 	f := make(chan multipart.File)
 	go parseMultipartToFile(f, handler.Filename)

@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func CreateProduct(w http.ResponseWriter, r *http.Request) {
+func ProductCreate(w http.ResponseWriter, r *http.Request) {
 	transactionId, err, traceId, product, done := handleCreatProductRequest(w, r)
 	if done {
 		return

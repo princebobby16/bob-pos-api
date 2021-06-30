@@ -36,21 +36,21 @@ func InitRoutes() *mux.Router {
 
 		// products start
 		Route{
-			Name:    "Create Product",
+			Name:    "Create ProductCreate",
 			Path:    "/products",
 			Method:  http.MethodPost,
-			Handler: create.CreateProduct,
+			Handler: create.ProductCreate,
 		},
 
 		Route{
-			Name:    "Delete Product",
+			Name:    "Delete ProductCreate",
 			Path:    "/products",
 			Method:  http.MethodDelete,
 			Handler: product.DeleteProduct,
 		},
 
 		Route{
-			Name:    "Get One Product By Id",
+			Name:    "Get One ProductCreate By Id",
 			Path:    "/one/products",
 			Method:  http.MethodGet,
 			Handler: product.GetOneProductById,
@@ -64,7 +64,7 @@ func InitRoutes() *mux.Router {
 		},
 
 		Route{
-			Name:    "Upload Product Image",
+			Name:    "Upload ProductCreate Image",
 			Path:    "/up/products",
 			Method:  http.MethodPost,
 			Handler: mediaupload.HandleMediaUpload,

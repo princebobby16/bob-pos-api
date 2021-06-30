@@ -24,7 +24,7 @@ type (
 	TaxDetails struct {
 		Id        uuid.UUID `json:"id"`
 		Name      string    `json:"name"`
-		TaxRate   string    `json:"tax_rate"`
+		TaxRate   float64   `json:"tax_rate"`
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
 	}
@@ -62,9 +62,8 @@ type (
 	}
 
 	CreatedProductData struct {
-		Id             string `json:"id"`
-		UiMessage      string `json:"ui_message"`
-		ProductBarcode []byte `json:"product_barcode"`
+		Id        string `json:"id"`
+		UiMessage string `json:"ui_message"`
 	}
 
 	Data struct {
