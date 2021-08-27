@@ -9,6 +9,7 @@ import (
 	multiplexer2 "gitlab.com/pbobby001/bobpos_api/app/api/multiplexer"
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
 	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -68,7 +69,7 @@ func main() {
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		// TODO: Fetch port from store
-		logger.Logger.Info("Server running on port: ", port)
+		log.Println("Server running on port: ", port)
 		if err := server.ListenAndServe(); err != nil {
 			_ = logger.Logger.Warn(err)
 		}

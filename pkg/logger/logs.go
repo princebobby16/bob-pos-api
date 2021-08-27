@@ -10,9 +10,9 @@ var Logger see.LoggerInterface
 
 func init() {
 
-	common := "pkg/logs/common.log"
-	critical := "pkg/logs/critical.log"
-	errorLog := "pkg/logs/error.log"
+	common := "pkg/logger/logs/common.log"
+	critical := " pkg/logger/logs/critical.log"
+	errorLog := "pkg/logger/logs/error.log"
 	if _, err := os.Stat(common); !os.IsNotExist(err) {
 		// Do nothing
 	}
@@ -54,27 +54,27 @@ func loadAppConfig() {
 	<outputs>
 		<filter levels="trace">
 			<console formatid="plain"/>
-			<file path="./pkg/logs/common.log"/>
+			<file path="./pkg/logger/logs/common.log"/>
 		</filter>
 
 		<filter levels="info">
 			<console formatid="plain"/>
-			<file path="./pkg/logs/common.log"/>
+			<file path="./pkg/logger/logs/common.log"/>
 		</filter>
 
 		<filter levels="warn">
 			<console formatid="plain" />
-			<file path="./pkg/logs/common.log"/>
+			<file path="./pkg/logger/logs/common.log"/>
 		</filter>
 
 		<filter levels="error">
 			<console formatid="error"/>
-			<file path="./pkg/logs/error.log"/>
+			<file path="./pkg/logger/logs/error.log"/>
 		</filter>
 		
 		<filter levels="critical">
 			<console formatid="critical"/>
-			<file path="./pkg/logs/critical.log"/>
+			<file path="./pkg/logger/logs/critical.log"/>
 			<smtp formatid="criticalemail" 
 				senderaddress="shiftrgh@gmail.com" 
 				sendername="Scheduler Microservice" 

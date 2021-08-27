@@ -26,7 +26,7 @@ func Connect() {
 		panic(err)
 	}
 
-	logger.Logger.Info("Connected to Postgres DB successfully")
+	log.Println("Connected to Postgres DB successfully")
 }
 
 func Disconnect() {
