@@ -1,4 +1,4 @@
-package create
+package handlers
 
 import (
 	"net/http"
@@ -14,8 +14,8 @@ func ProductCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productId, done3 := insertProductIntoDatabase(w, err, product, transactionId, traceId)
-	if done3 {
+	productId, done := insertProductIntoDatabase(w, err, product, transactionId, traceId)
+	if done {
 		return
 	}
 

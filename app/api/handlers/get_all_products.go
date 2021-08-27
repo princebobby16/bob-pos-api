@@ -1,11 +1,11 @@
-package product
+package handlers
 
 import (
 	"encoding/json"
 	"github.com/twinj/uuid"
-	"gitlab.com/pbobby001/bobpos_api/db"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logs"
+	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
+	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"net/http"
 	"time"
 )
@@ -44,11 +44,11 @@ func sendGetAllProductsResponse(w http.ResponseWriter, products []pkg.Product, t
 }
 
 func getAllProductsFromDatabase(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string) ([]pkg.Product, bool) {
-	logs.Logger.Info("TraceId: ", traceId)
+	logger.Logger.Info("TraceId: ", traceId)
 
 	query := `select * from bobpos.products limit 2000`
 
-	rows, err := db.Connection.Query(query)
+	rows, err := connection.Connection.Query(query)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, "", err, http.StatusBadRequest)
 		return nil, true
@@ -78,7 +78,7 @@ func getAllProductsFromDatabase(w http.ResponseWriter, err error, transactionId 
 
 		products = append(products, product)
 		product.Image = []byte{}
-		logs.Logger.Info(product)
+		logger.Logger.Info(product)
 	}
 	return products, false
 }

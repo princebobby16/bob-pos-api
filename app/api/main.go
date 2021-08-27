@@ -5,10 +5,10 @@ import (
 	"flag"
 	"github.com/gorilla/handlers"
 	_ "github.com/joho/godotenv/autoload"
-	"gitlab.com/pbobby001/bobpos_api/app/middlewares"
-	"gitlab.com/pbobby001/bobpos_api/app/router"
-	"gitlab.com/pbobby001/bobpos_api/db"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logs"
+	middlewares2 "gitlab.com/pbobby001/bobpos_api/app/api/middlewares"
+	multiplexer2 "gitlab.com/pbobby001/bobpos_api/app/api/multiplexer"
+	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
+	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,9 +21,9 @@ func main() {
 	flag.Parse()
 
 	// Is this better?
-	db.Connect()
+	connection.Connect()
 
-	r := router.InitRoutes()
+	r := multiplexer2.InitRoutes()
 
 	origins := handlers.AllowedOrigins([]string{"*", "http://localhost:8080", "https://postit-ui.herokuapp.com", "https://postit-dev-ui.herokuapp.com"})
 	headers := handlers.AllowedHeaders([]string{
@@ -62,15 +62,15 @@ func main() {
 		Handler:      handlers.CORS(origins, headers, methods)(r), // Pass our instance of gorilla/mux in.
 	}
 
-	r.Use(middlewares.JSONMiddleware)
+	r.Use(middlewares2.JSONMiddleware)
 
-	defer db.Disconnect()
+	defer connection.Disconnect()
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		// TODO: Fetch port from store
-		logs.Logger.Info("Server running on port: ", port)
+		logger.Logger.Info("Server running on port: ", port)
 		if err := server.ListenAndServe(); err != nil {
-			_ = logs.Logger.Warn(err)
+			_ = logger.Logger.Warn(err)
 		}
 	}()
 
@@ -90,13 +90,13 @@ func main() {
 	// until the timeout deadline.
 	err := server.Shutdown(ctx)
 	if err != nil {
-		_ = logs.Logger.Error(err)
+		_ = logger.Logger.Error(err)
 		os.Exit(0)
 	}
 
 	// Optionally, you could run server.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
-	_ = logs.Logger.Warn("shutting down")
+	_ = logger.Logger.Warn("shutting down")
 	os.Exit(0)
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/twinj/uuid"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logs"
+	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"net/http"
 	"strings"
 	"time"
@@ -43,14 +43,14 @@ func (s *smtpServer) Address() string {
 func GenerateSku() (string, error) {
 	id := uuid.NewV4()
 	newIds := strings.Split(id.String(), "-")
-	logs.Logger.Info(newIds[1])
+	logger.Logger.Info(newIds[1])
 	return newIds[1], nil
 }
 
 // SendErrorResponse /* Helper func to handle error */
 func SendErrorResponse(w http.ResponseWriter, tId uuid.UUID, traceId string, err error, httpStatus int) {
 	w.WriteHeader(httpStatus)
-	_ = logs.Logger.Error(err)
+	_ = logger.Logger.Error(err)
 	_ = json.NewEncoder(w).Encode(StandardResponse{
 		Data: Data{
 			UiMessage: err.Error(),

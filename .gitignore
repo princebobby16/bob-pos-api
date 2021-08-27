@@ -1,5 +1,5 @@
 .idea
-.env
+server/.env
 bobpos_api
 pkg/logs/*.log
 pkg/images

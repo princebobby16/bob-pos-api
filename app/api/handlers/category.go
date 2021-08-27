@@ -1,11 +1,11 @@
-package category
+package handlers
 
 import (
 	"encoding/json"
 	"github.com/twinj/uuid"
-	"gitlab.com/pbobby001/bobpos_api/db"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logs"
+	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
+	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"net/http"
 	"time"
 )
@@ -20,7 +20,7 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 	if done2 {
 		return
 	}
-	logs.Logger.Info(categories)
+	logger.Logger.Info(categories)
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(pkg.GetAllCategoryResponse{
@@ -37,7 +37,7 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 func getAllCategoriesFromTheDatabase(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string) ([]pkg.ProductCategory, bool) {
 	query := `select * from bobpos.product_category`
 
-	rows, err := db.Connection.Query(query)
+	rows, err := connection.Connection.Query(query)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
 		return nil, true
@@ -74,6 +74,6 @@ func generateTransactionIdAndExtractTraceId(w http.ResponseWriter, r *http.Reque
 	traceId := headers["trace-id"]
 
 	// Logging the headers
-	logs.Logger.Infof("Headers => TraceId: %s", traceId)
+	logger.Logger.Infof("Headers => TraceId: %s", traceId)
 	return transactionId, err, traceId, false
 }

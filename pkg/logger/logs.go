@@ -1,4 +1,4 @@
-package logs
+package logger
 
 import (
 	see "github.com/cihub/seelog"

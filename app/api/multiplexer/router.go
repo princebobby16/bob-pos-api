@@ -1,12 +1,8 @@
-package router
+package multiplexer
 
 import (
 	"github.com/gorilla/mux"
-	"gitlab.com/pbobby001/bobpos_api/app/controllers"
-	"gitlab.com/pbobby001/bobpos_api/app/controllers/category"
-	"gitlab.com/pbobby001/bobpos_api/app/controllers/mediaupload"
-	"gitlab.com/pbobby001/bobpos_api/app/controllers/product"
-	"gitlab.com/pbobby001/bobpos_api/app/controllers/product/create"
+	"gitlab.com/pbobby001/bobpos_api/app/api/handlers"
 	"net/http"
 )
 
@@ -31,7 +27,7 @@ func InitRoutes() *mux.Router {
 			Name:    "Health Check",
 			Path:    "/",
 			Method:  http.MethodGet,
-			Handler: controllers.HealthCheckHandler,
+			Handler: handlers.HealthCheckHandler,
 		},
 
 		// products start
@@ -39,41 +35,41 @@ func InitRoutes() *mux.Router {
 			Name:    "Create ProductCreate",
 			Path:    "/products",
 			Method:  http.MethodPost,
-			Handler: create.ProductCreate,
+			Handler: handlers.ProductCreate,
 		},
 
 		Route{
 			Name:    "Delete ProductCreate",
 			Path:    "/products",
 			Method:  http.MethodDelete,
-			Handler: product.DeleteProduct,
+			Handler: handlers.DeleteProduct,
 		},
 
 		Route{
 			Name:    "Get One ProductCreate By Id",
 			Path:    "/one/products",
 			Method:  http.MethodGet,
-			Handler: product.GetOneProductById,
+			Handler: handlers.GetOneProductById,
 		},
 
 		Route{
 			Name:    "Get All Products",
 			Path:    "/all/products",
 			Method:  http.MethodGet,
-			Handler: product.GetAllProducts,
+			Handler: handlers.GetAllProducts,
 		},
 
 		Route{
 			Name:    "Upload ProductCreate Image",
 			Path:    "/up/products",
 			Method:  http.MethodPost,
-			Handler: mediaupload.HandleMediaUpload,
+			Handler: handlers.HandleMediaUpload,
 		},
 		Route{
 			Name:    "Delete Uploaded media file",
 			Path:    "/can/products",
 			Method:  http.MethodPost,
-			Handler: mediaupload.HandleCancelMediaUpload,
+			Handler: handlers.HandleCancelMediaUpload,
 		},
 		// products end
 
@@ -81,7 +77,14 @@ func InitRoutes() *mux.Router {
 			Name:    "Get All Categories",
 			Path:    "/categories",
 			Method:  http.MethodGet,
-			Handler: category.GetAllCategories,
+			Handler: handlers.GetAllCategories,
+		},
+
+		Route{
+			Name:    "Create Tax",
+			Path:    "/tax",
+			Method:  http.MethodGet,
+			Handler: handlers.CreateTax,
 		},
 	}
 

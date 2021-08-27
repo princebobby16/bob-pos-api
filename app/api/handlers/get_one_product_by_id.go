@@ -1,11 +1,11 @@
-package product
+package handlers
 
 import (
 	"encoding/json"
 	"github.com/twinj/uuid"
-	"gitlab.com/pbobby001/bobpos_api/db"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logs"
+	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
+	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"net/http"
 	"time"
 )
@@ -21,10 +21,10 @@ func GetOneProductById(w http.ResponseWriter, r *http.Request) {
 	//Get the relevant headers
 	traceId := headers["trace-id"]
 	// Logging the headers
-	logs.Logger.Infof("Headers => TraceId: %s", traceId)
+	logger.Logger.Infof("Headers => TraceId: %s", traceId)
 
 	productId := r.URL.Query().Get("product_id")
-	logs.Logger.Info(productId)
+	logger.Logger.Info(productId)
 
 	product, done := getProductFromDatabase(w, err, productId, transactionId)
 	if done {
@@ -37,7 +37,7 @@ func GetOneProductById(w http.ResponseWriter, r *http.Request) {
 func getProductFromDatabase(w http.ResponseWriter, err error, productId string, transactionId uuid.UUID) (pkg.Product, bool) {
 	query := `select * from bobpos.products where id=$1`
 	var product pkg.Product
-	err = db.Connection.QueryRow(query, &productId).Scan(
+	err = connection.Connection.QueryRow(query, &productId).Scan(
 		&product.Id,
 		&product.Name,
 		&product.Category,
