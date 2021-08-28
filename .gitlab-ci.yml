@@ -12,8 +12,8 @@ variables:
 before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
-  - cd $GOPATH/src/$REPO_NAME/app/api
-  - ls -la
+  - cd $GOPATH/src/$REPO_NAME
+  - ls
 
 stages:
   - test
