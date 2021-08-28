@@ -2,7 +2,10 @@ package multiplexer
 
 import (
 	"github.com/gorilla/mux"
-	"gitlab.com/pbobby001/bobpos_api/app/api/handlers"
+	"gitlab.com/pbobby001/bobpos_api/app/api/handlers/health"
+	"gitlab.com/pbobby001/bobpos_api/app/api/handlers/media"
+	"gitlab.com/pbobby001/bobpos_api/app/api/handlers/product"
+	"gitlab.com/pbobby001/bobpos_api/app/api/handlers/tax"
 	"net/http"
 )
 
@@ -27,7 +30,7 @@ func InitRoutes() *mux.Router {
 			Name:    "Health Check",
 			Path:    "/",
 			Method:  http.MethodGet,
-			Handler: handlers.HealthCheckHandler,
+			Handler: health.HealthCheckHandler,
 		},
 
 		// products start
@@ -35,41 +38,41 @@ func InitRoutes() *mux.Router {
 			Name:    "Create ProductCreate",
 			Path:    "/products",
 			Method:  http.MethodPost,
-			Handler: handlers.ProductCreate,
+			Handler: product.ProductCreate,
 		},
 
 		Route{
 			Name:    "Delete ProductCreate",
 			Path:    "/products",
 			Method:  http.MethodDelete,
-			Handler: handlers.DeleteProduct,
+			Handler: product.DeleteProduct,
 		},
 
 		Route{
 			Name:    "Get One ProductCreate By Id",
 			Path:    "/one/products",
 			Method:  http.MethodGet,
-			Handler: handlers.GetOneProductById,
+			Handler: product.GetOneProductById,
 		},
 
 		Route{
 			Name:    "Get All Products",
 			Path:    "/all/products",
 			Method:  http.MethodGet,
-			Handler: handlers.GetAllProducts,
+			Handler: product.GetAllProducts,
 		},
 
 		Route{
 			Name:    "Upload ProductCreate Image",
 			Path:    "/up/products",
 			Method:  http.MethodPost,
-			Handler: handlers.HandleMediaUpload,
+			Handler: media.HandleMediaUpload,
 		},
 		Route{
 			Name:    "Delete Uploaded media file",
 			Path:    "/can/products",
 			Method:  http.MethodPost,
-			Handler: handlers.HandleCancelMediaUpload,
+			Handler: media.HandleCancelMediaUpload,
 		},
 		// products end
 
@@ -77,14 +80,14 @@ func InitRoutes() *mux.Router {
 			Name:    "Get All Categories",
 			Path:    "/categories",
 			Method:  http.MethodGet,
-			Handler: handlers.GetAllCategories,
+			Handler: product.GetAllCategories,
 		},
 
 		Route{
 			Name:    "Create Tax",
 			Path:    "/tax",
 			Method:  http.MethodGet,
-			Handler: handlers.CreateTax,
+			Handler: tax.CreateTax,
 		},
 	}
 

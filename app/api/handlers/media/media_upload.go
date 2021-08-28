@@ -1,4 +1,4 @@
-package handlers
+package media
 
 import (
 	"encoding/json"
