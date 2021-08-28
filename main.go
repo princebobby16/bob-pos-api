@@ -5,8 +5,8 @@ import (
 	"flag"
 	"github.com/gorilla/handlers"
 	_ "github.com/joho/godotenv/autoload"
-	middlewares2 "gitlab.com/pbobby001/bobpos_api/app/api/middlewares"
-	multiplexer2 "gitlab.com/pbobby001/bobpos_api/app/api/multiplexer"
+	"gitlab.com/pbobby001/bobpos_api/app/api/middlewares"
+	"gitlab.com/pbobby001/bobpos_api/app/api/multiplexer"
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
 	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"log"
@@ -24,7 +24,7 @@ func main() {
 	// Is this better?
 	connection.Connect()
 
-	r := multiplexer2.InitRoutes()
+	r := multiplexer.InitRoutes()
 
 	origins := handlers.AllowedOrigins([]string{"*", "http://localhost:8080", "https://postit-ui.herokuapp.com", "https://postit-dev-ui.herokuapp.com"})
 	headers := handlers.AllowedHeaders([]string{
@@ -63,7 +63,7 @@ func main() {
 		Handler:      handlers.CORS(origins, headers, methods)(r), // Pass our instance of gorilla/mux in.
 	}
 
-	r.Use(middlewares2.JSONMiddleware)
+	r.Use(middlewares.JSONMiddleware)
 
 	defer connection.Disconnect()
 	// Run our server in a goroutine so that it doesn't block.

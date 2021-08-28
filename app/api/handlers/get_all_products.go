@@ -5,7 +5,7 @@ import (
 	"github.com/twinj/uuid"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
+	"log"
 	"net/http"
 	"time"
 )
@@ -44,7 +44,7 @@ func sendGetAllProductsResponse(w http.ResponseWriter, products []pkg.Product, t
 }
 
 func getAllProductsFromDatabase(w http.ResponseWriter, err error, transactionId uuid.UUID, traceId string) ([]pkg.Product, bool) {
-	logger.Logger.Info("TraceId: ", traceId)
+	log.Println("TraceId: ", traceId)
 
 	query := `select * from bobpos.products limit 2000`
 
@@ -78,7 +78,7 @@ func getAllProductsFromDatabase(w http.ResponseWriter, err error, transactionId 
 
 		products = append(products, product)
 		product.Image = []byte{}
-		logger.Logger.Info(product)
+		log.Println(product)
 	}
 	return products, false
 }

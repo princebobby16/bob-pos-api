@@ -5,7 +5,7 @@ import (
 	"github.com/twinj/uuid"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
+	"log"
 	"net/http"
 	"time"
 )
@@ -20,7 +20,7 @@ func GetAllCategories(w http.ResponseWriter, r *http.Request) {
 	if done2 {
 		return
 	}
-	logger.Logger.Info(categories)
+	log.Println(categories)
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(pkg.GetAllCategoryResponse{
@@ -74,6 +74,6 @@ func generateTransactionIdAndExtractTraceId(w http.ResponseWriter, r *http.Reque
 	traceId := headers["trace-id"]
 
 	// Logging the headers
-	logger.Logger.Infof("Headers => TraceId: %s", traceId)
+	log.Println("Headers => TraceId: ", traceId)
 	return transactionId, err, traceId, false
 }

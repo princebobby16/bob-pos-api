@@ -5,7 +5,7 @@ import (
 	"github.com/twinj/uuid"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
+	"log"
 	"net/http"
 	"time"
 )
@@ -27,10 +27,10 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 func getProductIdAndTraceId(headers map[string]string, r *http.Request) (string, string) {
 	traceId := headers["trace-id"]
 	// Logging the headers
-	logger.Logger.Infof("Headers => TraceId: %s", traceId)
+	log.Printf("Headers => TraceId: %s", traceId)
 
 	productId := r.URL.Query().Get("product_id")
-	logger.Logger.Info(productId)
+	log.Println(productId)
 	return traceId, productId
 }
 

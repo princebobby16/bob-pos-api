@@ -6,6 +6,7 @@ import (
 	"gitlab.com/pbobby001/bobpos_api/pkg"
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
 	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
+	"log"
 	"net/http"
 	"time"
 )
@@ -24,7 +25,7 @@ func GetOneProductById(w http.ResponseWriter, r *http.Request) {
 	logger.Logger.Infof("Headers => TraceId: %s", traceId)
 
 	productId := r.URL.Query().Get("product_id")
-	logger.Logger.Info(productId)
+	log.Println(productId)
 
 	product, done := getProductFromDatabase(w, err, productId, transactionId)
 	if done {
