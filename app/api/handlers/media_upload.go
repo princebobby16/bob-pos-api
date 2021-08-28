@@ -7,6 +7,7 @@ import (
 	"gitlab.com/pbobby001/bobpos_api/pkg"
 	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -36,36 +37,36 @@ func HandleMediaUpload(w http.ResponseWriter, r *http.Request) {
 	traceId := headers["trace-id"]
 
 	// Logging the headers
-	logger.Logger.Info("Headers => TraceId: " + traceId)
+	log.Println("Headers => TraceId: " + traceId)
 
 	err = r.ParseMultipartForm(10 * MB)
 	if err != nil {
-		_ = logger.Logger.Error(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusRequestEntityTooLarge)
 		return
 	}
 
 	file, handler, err := r.FormFile("media_file")
 	if err != nil {
-		logger.Logger.Info("Error Retrieving the File")
-		_ = logger.Logger.Error(err)
+		log.Println("Error Retrieving the File")
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	defer func() {
 		err = file.Close()
 		if err != nil {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			return
 		}
 	}()
 
-	logger.Logger.Info("Uploaded File: ", handler.Filename)
-	logger.Logger.Info("File Size: ", handler.Size)
-	logger.Logger.Info("MIME Header: ", handler.Header)
+	log.Println("Uploaded File: ", handler.Filename)
+	log.Println("File Size: ", handler.Size)
+	log.Println("MIME Header: ", handler.Header)
 
 	if strings.Split(handler.Filename, ".")[1] == "webp" {
-		logger.Logger.Info("invalid image format")
+		log.Println("invalid image format")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("invalid\timage\tformat"))
 		return
@@ -97,14 +98,14 @@ func parseMultipartToFile(fileChannel <-chan multipart.File, filename string) {
 		// read the file bytes
 		fileBytes, err := ioutil.ReadAll(file)
 		if err != nil {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			return
 		}
 
 		// get the working directory for generating the path for image storage
 		wd, err := os.Getwd()
 		if err != nil {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			return
 		}
 
@@ -117,26 +118,26 @@ func parseMultipartToFile(fileChannel <-chan multipart.File, filename string) {
 			if os.IsExist(err) {
 				_ = logger.Logger.Warn(err)
 			} else {
-				_ = logger.Logger.Error(err)
+				log.Println(err)
 				return
 			}
 		}
 
 		tempFile, err := os.Create(join + "/" + filename)
 		if err != nil {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			return
 		}
 
 		_, err = tempFile.Write(fileBytes)
 		if err != nil {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			return
 		}
 
 		img, err := imaging.Open(tempFile.Name())
 		if err != nil {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			return
 		}
 
@@ -144,12 +145,12 @@ func parseMultipartToFile(fileChannel <-chan multipart.File, filename string) {
 		src := imaging.Resize(imb, 0, 200, imaging.Lanczos)
 		err = imaging.Save(src, tempFile.Name())
 		if err != nil {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			return
 		}
 		_ = tempFile.Close()
 
-		logger.Logger.Info("Successfully resized image...")
+		log.Println("Successfully resized image...")
 	}
 }
 
@@ -166,21 +167,21 @@ func HandleCancelMediaUpload(w http.ResponseWriter, r *http.Request) {
 	traceId := headers["trace-id"]
 
 	// Logging the headers
-	logger.Logger.Info("Headers => TraceId: " + traceId)
+	log.Println("Headers => TraceId: " + traceId)
 
 	fileName := r.URL.Query().Get("file_name")
-	logger.Logger.Info(fileName)
+	log.Println(fileName)
 
 	workingDir, err := os.Getwd()
 	if err != nil {
-		_ = logger.Logger.Error(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	logger.Logger.Info(workingDir)
+	log.Println(workingDir)
 
 	imageStoragePath := path.Join(workingDir, "/pkg/images")
-	logger.Logger.Info(imageStoragePath)
+	log.Println(imageStoragePath)
 
 	if imageStoragePath == "" {
 		_ = logger.Logger.Warn("No image has been uploaded to server")
@@ -202,7 +203,7 @@ func HandleCancelMediaUpload(w http.ResponseWriter, r *http.Request) {
 
 	err = os.Remove(imageStoragePath + "/" + fileName)
 	if err != nil {
-		_ = logger.Logger.Error(err)
+		log.Println(err)
 		return
 	}
 
@@ -234,18 +235,18 @@ func DeleteUploadedFiles(w http.ResponseWriter, r *http.Request) {
 	tenantNamespace := headers["tenant-namespace"]
 
 	// Logging the headers
-	logger.Logger.Info("Headers => TraceId: " + traceId + ", TenantNamespace: " + tenantNamespace)
+	log.Println("Headers => TraceId: " + traceId + ", TenantNamespace: " + tenantNamespace)
 
 	workingDir, err := os.Getwd()
 	if err != nil {
-		_ = logger.Logger.Error(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	logger.Logger.Info(workingDir)
+	log.Println(workingDir)
 
 	imageStoragePath := path.Join(workingDir, "/pkg/images")
-	logger.Logger.Info(imageStoragePath)
+	log.Println(imageStoragePath)
 
 	if imageStoragePath == "" {
 		_ = logger.Logger.Warn("No image has been uploaded to server")
@@ -267,11 +268,11 @@ func DeleteUploadedFiles(w http.ResponseWriter, r *http.Request) {
 
 	err = os.RemoveAll(imageStoragePath)
 	if err != nil {
-		_ = logger.Logger.Error(err)
+		log.Println(err)
 		if os.IsNotExist(err) {
 
 		} else {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			_ = json.NewEncoder(w).Encode(pkg.StandardResponse{
 				Data: pkg.Data{

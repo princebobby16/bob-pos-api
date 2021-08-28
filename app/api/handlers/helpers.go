@@ -8,6 +8,7 @@ import (
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
 	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -71,13 +72,13 @@ func insertProductIntoDatabase(w http.ResponseWriter, err error, product *pkg.Pr
 func getImageIfAvailable(w http.ResponseWriter, tid uuid.UUID, traceId string, err error, product *pkg.Product) bool {
 	wd, err := os.Getwd()
 	if err != nil {
-		_ = logger.Logger.Error(err)
+		log.Println(err)
 		pkg.SendErrorResponse(w, tid, traceId, err, http.StatusBadRequest)
 		return true
 	}
 
 	path := filepath.Join(wd, "pkg/images")
-	logger.Logger.Info(path)
+	log.Println(path)
 
 	fileInfo, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -86,7 +87,7 @@ func getImageIfAvailable(w http.ResponseWriter, tid uuid.UUID, traceId string, e
 			pkg.SendErrorResponse(w, tid, traceId, errors.New("no image uploaded"), http.StatusBadRequest)
 			return true
 		} else {
-			_ = logger.Logger.Error(err)
+			log.Println(err)
 			return true
 		}
 	}
@@ -95,26 +96,26 @@ func getImageIfAvailable(w http.ResponseWriter, tid uuid.UUID, traceId string, e
 
 	if fileInfo != nil {
 		for _, file := range fileInfo {
-			logger.Logger.Info(file.Name())
+			log.Println(file.Name())
 
 			fileLocation := filepath.Join(path, file.Name())
 
 			openImage, err := os.Open(fileLocation)
 			if err != nil {
-				_ = logger.Logger.Error(err)
+				log.Println(err)
 				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
 				return true
 			}
 
 			imageBytes, err = ioutil.ReadAll(openImage)
 			if err != nil {
-				_ = logger.Logger.Error(err)
+				log.Println(err)
 				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
 				return true
 			}
 			err = openImage.Close()
 			if err != nil {
-				_ = logger.Logger.Error(err)
+				log.Println(err)
 				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
 				return true
 			}
@@ -122,7 +123,7 @@ func getImageIfAvailable(w http.ResponseWriter, tid uuid.UUID, traceId string, e
 
 			err = os.RemoveAll(wd + "/pkg/images")
 			if err != nil {
-				_ = logger.Logger.Error(err)
+				log.Println(err)
 				pkg.SendErrorResponse(w, tid, traceId, err, http.StatusInternalServerError)
 				return true
 			}
@@ -145,7 +146,7 @@ func handleCreatProductRequest(w http.ResponseWriter, r *http.Request) (uuid.UUI
 	traceId := headers["trace-id"]
 
 	// Logging the headers
-	logger.Logger.Infof("Headers => TraceId: %s", traceId)
+	log.Printf("Headers => TraceId: %s", traceId)
 
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -153,7 +154,7 @@ func handleCreatProductRequest(w http.ResponseWriter, r *http.Request) (uuid.UUI
 		return uuid.UUID{}, nil, "", nil, true
 	}
 
-	logger.Logger.Info("Request Object: ", string(requestBody))
+	log.Println("Request Object: ", string(requestBody))
 
 	// Create ProductCreate instance to decode request object into
 	var product *pkg.Product
@@ -164,7 +165,7 @@ func handleCreatProductRequest(w http.ResponseWriter, r *http.Request) (uuid.UUI
 		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
 		return uuid.UUID{}, nil, "", nil, true
 	}
-	logger.Logger.Info(product)
+	log.Println(product)
 
 	if product.Barcode == "" {
 		pkg.SendErrorResponse(w, transactionId, traceId, errors.New("no barcode provided for product"), http.StatusBadRequest)

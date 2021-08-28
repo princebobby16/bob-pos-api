@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/twinj/uuid"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -21,14 +21,14 @@ func CreateTax(w http.ResponseWriter, r *http.Request) {
 	traceId := headers["trace-id"]
 
 	// Logging the headers
-	logger.Logger.Infof("Headers => TraceId: %s", traceId)
+	log.Printf("Headers => TraceId: %s", traceId)
 
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
 	}
 
-	logger.Logger.Info("Request Object: ", string(requestBody))
+	log.Println("Request Object: ", string(requestBody))
 
 	// Create ProductCreate instance to decode request object into
 	var tax *pkg.TaxDetails
@@ -38,5 +38,5 @@ func CreateTax(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		pkg.SendErrorResponse(w, transactionId, traceId, err, http.StatusBadRequest)
 	}
-	logger.Logger.Info(tax)
+	log.Println(tax)
 }

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
+	"log"
 	"net/http"
 )
 
@@ -29,6 +29,6 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(health)
 	if err != nil {
-		_ = logger.Logger.Error("unable to check health of server")
+		log.Println("unable to check health of server")
 	}
 }
