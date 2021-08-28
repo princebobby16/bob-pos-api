@@ -1,10 +1,6 @@
 package logger
 
-import (
-	see "github.com/cihub/seelog"
-)
-
-var Logger see.LoggerInterface
+//var Logger see.LoggerInterface
 
 //func init() {
 //

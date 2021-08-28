@@ -6,7 +6,6 @@ import (
 	"github.com/twinj/uuid"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -83,7 +82,7 @@ func getImageIfAvailable(w http.ResponseWriter, tid uuid.UUID, traceId string, e
 	fileInfo, err := ioutil.ReadDir(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			_ = logger.Logger.Warn(err)
+			log.Println(err)
 			pkg.SendErrorResponse(w, tid, traceId, errors.New("no image uploaded"), http.StatusBadRequest)
 			return true
 		} else {

@@ -3,7 +3,6 @@ package connection
 import (
 	"database/sql"
 	_ "github.com/lib/pq"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"log"
 	"os"
 )
@@ -30,10 +29,10 @@ func Connect() {
 }
 
 func Disconnect() {
-	logger.Logger.Info("Attempting to disconnect from db....")
+	log.Println("Attempting to disconnect from db....")
 	err := Connection.Close()
 	if err != nil {
-		_ = logger.Logger.Error(err)
+		log.Println(err)
 	}
-	logger.Logger.Info("Disconnected from db successfully...")
+	log.Println("Disconnected from db successfully...")
 }

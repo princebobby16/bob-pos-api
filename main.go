@@ -8,7 +8,6 @@ import (
 	"gitlab.com/pbobby001/bobpos_api/app/api/middlewares"
 	"gitlab.com/pbobby001/bobpos_api/app/api/multiplexer"
 	"gitlab.com/pbobby001/bobpos_api/pkg/db/connection"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"log"
 	"net/http"
 	"os"
@@ -71,7 +70,7 @@ func main() {
 		// TODO: Fetch port from store
 		log.Println("Server running on port: ", port)
 		if err := server.ListenAndServe(); err != nil {
-			_ = logger.Logger.Warn(err)
+			log.Println(err)
 		}
 	}()
 
@@ -91,13 +90,13 @@ func main() {
 	// until the timeout deadline.
 	err := server.Shutdown(ctx)
 	if err != nil {
-		_ = logger.Logger.Error(err)
+		log.Println(err)
 		os.Exit(0)
 	}
 
 	// Optionally, you could run server.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
-	_ = logger.Logger.Warn("shutting down")
+	log.Println("shutting down")
 	os.Exit(0)
 }

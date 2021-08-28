@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/twinj/uuid"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
+	"log"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -30,27 +29,10 @@ func ValidateHeadersAndReturnTheirValues(r *http.Request) (map[string]string, er
 	return receivedHeaders, nil
 }
 
-type smtpServer struct {
-	host string
-	port string
-}
-
-// Address URI to smtp server
-func (s *smtpServer) Address() string {
-	return s.host + ":" + s.port
-}
-
-func GenerateSku() (string, error) {
-	id := uuid.NewV4()
-	newIds := strings.Split(id.String(), "-")
-	logger.Logger.Info(newIds[1])
-	return newIds[1], nil
-}
-
 // SendErrorResponse /* Helper func to handle error */
 func SendErrorResponse(w http.ResponseWriter, tId uuid.UUID, traceId string, err error, httpStatus int) {
 	w.WriteHeader(httpStatus)
-	_ = logger.Logger.Error(err)
+	log.Println(err)
 	_ = json.NewEncoder(w).Encode(StandardResponse{
 		Data: Data{
 			UiMessage: err.Error(),

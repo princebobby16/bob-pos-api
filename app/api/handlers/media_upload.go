@@ -5,7 +5,6 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/twinj/uuid"
 	"gitlab.com/pbobby001/bobpos_api/pkg"
-	"gitlab.com/pbobby001/bobpos_api/pkg/logger"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
@@ -116,7 +115,7 @@ func parseMultipartToFile(fileChannel <-chan multipart.File, filename string) {
 		err = os.Mkdir(join, 0755)
 		if err != nil {
 			if os.IsExist(err) {
-				_ = logger.Logger.Warn(err)
+				log.Println(err)
 			} else {
 				log.Println(err)
 				return
@@ -184,7 +183,7 @@ func HandleCancelMediaUpload(w http.ResponseWriter, r *http.Request) {
 	log.Println(imageStoragePath)
 
 	if imageStoragePath == "" {
-		_ = logger.Logger.Warn("No image has been uploaded to server")
+		log.Println("No image has been uploaded to server")
 		w.WriteHeader(http.StatusGone)
 		_ = json.NewEncoder(w).Encode(pkg.StandardResponse{
 			Data: pkg.Data{
@@ -249,7 +248,7 @@ func DeleteUploadedFiles(w http.ResponseWriter, r *http.Request) {
 	log.Println(imageStoragePath)
 
 	if imageStoragePath == "" {
-		_ = logger.Logger.Warn("No image has been uploaded to server")
+		log.Println("No image has been uploaded to server")
 		w.WriteHeader(http.StatusGone)
 		_ = json.NewEncoder(w).Encode(pkg.StandardResponse{
 			Data: pkg.Data{
