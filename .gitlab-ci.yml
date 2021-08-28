@@ -1,0 +1,74 @@
+image: golang:latest
+
+variables:
+  REPO_NAME: gitlab.com/pbobby001/bobpos_api
+
+# The problem is that to be able to use go get, one needs to put
+# the repository in the $GOPATH. So for example if your gitlab domain
+# is gitlab.com, and that your repository is pbobby001/postit-api, and
+# the default GOPATH being /go, then you'd need to have your
+# repository in /go/src/gitlab.com/pbobby001/postit-api
+# Thus, making a symbolic link corrects this.
+before_script:
+  - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
+  - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
+  - cd $GOPATH/src/$REPO_NAME
+
+stages:
+  - test
+  - build
+  - deploy
+
+testing:
+  stage: test
+  script:
+    - go fmt $(go list ./... | grep -v /vendor/)
+    - go vet $(go list ./... | grep -v /vendor/)
+    - go test -race $(go list ./... | grep -v /vendor/)
+
+building:
+  stage: build
+  script:
+    - go get -d -v
+    - go build -o bin/bobpos-api -v .
+
+development:
+  stage: deploy
+  script:
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - dpl --provider=heroku --app=bobpos-dev --api-key=$HEROKU_API_KEY --run='./bin/goose up'
+  environment:
+    name: Development
+    url: https://bobpos-dev.herokuapp.com/
+  only:
+    - master
+
+#staging:
+#  stage: deploy
+#  script:
+#    - apt-get update -qy
+#    - apt-get install -y ruby-dev
+#    - gem install dpl
+#    - dpl --provider=heroku --app=postit-staging-api --api-key=$HEROKU_API_KEY --run='./bin/goose up'
+#  environment:
+#    name: Staging
+#    url: https://postit-staging-api.herokuapp.com/
+#  only:
+#    - master
+#  when: manual
+#
+#production:
+#  stage: deploy
+#  script:
+#    - apt-get update -qy
+#    - apt-get install -y ruby-dev
+#    - gem install dpl
+#    - dpl --provider=heroku --app=postit-prod-api --api-key=$HEROKU_API_KEY
+#  environment:
+#    name: Production
+#    url: https://postit-prod-api.herokuapp.com/
+#  only:
+#    - master
+#  when: manual
